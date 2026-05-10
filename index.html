@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bad Prompt vs Good Prompt</title>
+    <style>
+      :root {
+        --bg: #080b1a;
+        --bg-soft: #111831;
+        --card: rgba(255, 255, 255, 0.09);
+        --card-strong: rgba(255, 255, 255, 0.14);
+        --text: #f8fbff;
+        --muted: #b6c2dc;
+        --pink: #ff4ecd;
+        --orange: #ffad4e;
+        --cyan: #36e3ff;
+        --green: #7cf59b;
+        --red: #ff6b7a;
+        --purple: #8f7bff;
+        --shadow: 0 28px 90px rgba(0, 0, 0, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 12% 12%, rgba(255, 78, 205, 0.28), transparent 28rem),
+          radial-gradient(circle at 88% 10%, rgba(54, 227, 255, 0.22), transparent 27rem),
+          radial-gradient(circle at 50% 95%, rgba(143, 123, 255, 0.26), transparent 33rem),
+          linear-gradient(135deg, #070912 0%, #11172d 46%, #080b1a 100%);
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+        background-size: 42px 42px;
+        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), transparent 82%);
+      }
+
+      .orb {
+        position: fixed;
+        width: 20rem;
+        height: 20rem;
+        border-radius: 999px;
+        filter: blur(2px);
+        opacity: 0.5;
+        pointer-events: none;
+        animation: float 11s ease-in-out infinite;
+      }
+
+      .orb.one {
+        top: 8%;
+        left: -7rem;
+        background: radial-gradient(circle, rgba(255, 78, 205, 0.55), transparent 68%);
+      }
+
+      .orb.two {
+        right: -8rem;
+        bottom: 8%;
+        background: radial-gradient(circle, rgba(54, 227, 255, 0.5), transparent 68%);
+        animation-delay: -4s;
+      }
+
+      @keyframes float {
+        0%, 100% {
+          transform: translate3d(0, 0, 0) scale(1);
+        }
+        50% {
+          transform: translate3d(2rem, -1.5rem, 0) scale(1.08);
+        }
+      }
+
+      .page {
+        position: relative;
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 44px 0 56px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.08fr 0.92fr;
+        gap: 28px;
+        align-items: center;
+        min-height: 45vh;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 14px;
+        margin: 0 0 20px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--muted);
+        backdrop-filter: blur(16px);
+        box-shadow: 0 10px 40px rgba(54, 227, 255, 0.08);
+      }
+
+      .spark {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 22px var(--green);
+        animation: pulse 1.7s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        50% {
+          transform: scale(1.55);
+          opacity: 0.62;
+        }
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(3rem, 7vw, 6.6rem);
+        line-height: 0.9;
+        letter-spacing: -0.08em;
+      }
+
+      .gradient-text {
+        display: block;
+        color: transparent;
+        background: linear-gradient(100deg, var(--cyan), var(--purple), var(--pink), var(--orange));
+        background-size: 240% 240%;
+        background-clip: text;
+        -webkit-background-clip: text;
+        animation: shimmer 5s ease infinite;
+      }
+
+      @keyframes shimmer {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+      }
+
+      .hero-copy {
+        max-width: 720px;
+        margin: 24px 0 0;
+        color: var(--muted);
+        font-size: clamp(1.05rem, 2vw, 1.28rem);
+        line-height: 1.7;
+      }
+
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 30px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 20px;
+        border: 0;
+        border-radius: 16px;
+        color: #07101e;
+        font-weight: 800;
+        text-decoration: none;
+        background: linear-gradient(135deg, var(--cyan), var(--green));
+        box-shadow: 0 16px 45px rgba(54, 227, 255, 0.22);
+        transition: transform 0.24s ease, box-shadow 0.24s ease;
+      }
+
+      .button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 22px 58px rgba(54, 227, 255, 0.33);
+      }
+
+      .button.secondary {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.17);
+        box-shadow: none;
+      }
+
+      .video-card,
+      .prompt-card,
+      .lesson-card,
+      .template-card {
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.055));
+        backdrop-filter: blur(22px);
+        box-shadow: var(--shadow);
+      }
+
+      .video-card {
+        position: relative;
+        padding: 24px;
+        border-radius: 34px;
+        overflow: hidden;
+        transform: rotate(1.5deg);
+        animation: riseIn 0.9s ease both;
+      }
+
+      .video-card::after {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        border-radius: inherit;
+        pointer-events: none;
+        background: linear-gradient(135deg, transparent, rgba(54, 227, 255, 0.28), transparent);
+        opacity: 0.65;
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask-composite: exclude;
+        padding: 1px;
+      }
+
+      .player-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 22px;
+      }
+
+      .traffic {
+        display: flex;
+        gap: 8px;
+      }
+
+      .traffic span {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--red);
+      }
+
+      .traffic span:nth-child(2) { background: var(--orange); }
+      .traffic span:nth-child(3) { background: var(--green); }
+
+      .recording {
+        color: #ffd7e9;
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .play-zone {
+        display: grid;
+        place-items: center;
+        min-height: 250px;
+        border-radius: 26px;
+        background:
+          linear-gradient(135deg, rgba(255, 78, 205, 0.22), rgba(54, 227, 255, 0.16)),
+          rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+      }
+
+      .play-button {
+        width: 92px;
+        height: 92px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: rgba(255, 255, 255, 0.14);
+        box-shadow: 0 0 0 16px rgba(255, 255, 255, 0.055);
+        animation: playPulse 2s ease-in-out infinite;
+      }
+
+      .play-button::before {
+        content: "";
+        margin-left: 7px;
+        border-top: 18px solid transparent;
+        border-bottom: 18px solid transparent;
+        border-left: 27px solid white;
+      }
+
+      @keyframes playPulse {
+        50% { box-shadow: 0 0 0 24px rgba(255, 255, 255, 0.02); transform: scale(1.04); }
+      }
+
+      .timeline {
+        height: 10px;
+        margin-top: 22px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.14);
+        overflow: hidden;
+      }
+
+      .timeline span {
+        display: block;
+        width: 72%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--pink), var(--cyan));
+        animation: loadBar 3.5s ease-in-out infinite alternate;
+      }
+
+      @keyframes loadBar {
+        from { width: 38%; }
+        to { width: 82%; }
+      }
+
+      section {
+        margin-top: 54px;
+      }
+
+      .section-heading {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 3.5rem);
+        letter-spacing: -0.055em;
+      }
+
+      .section-heading p {
+        max-width: 450px;
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .comparison-grid {
+        display: grid;
+        grid-template-columns: 0.92fr 1.08fr;
+        gap: 22px;
+      }
+
+      .prompt-card {
+        position: relative;
+        min-height: 430px;
+        padding: 26px;
+        border-radius: 30px;
+        overflow: hidden;
+        animation: riseIn 0.9s ease both;
+      }
+
+      .prompt-card.good {
+        animation-delay: 0.12s;
+      }
+
+      .prompt-card.bad::before,
+      .prompt-card.good::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: 0.12;
+        pointer-events: none;
+      }
+
+      .prompt-card.bad::before {
+        background: radial-gradient(circle at 20% 0%, var(--red), transparent 42%);
+      }
+
+      .prompt-card.good::before {
+        background: radial-gradient(circle at 20% 0%, var(--green), transparent 42%);
+      }
+
+      .card-label {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 0.84rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .bad .badge {
+        color: #ffdbe0;
+        background: rgba(255, 107, 122, 0.18);
+      }
+
+      .good .badge {
+        color: #ddffe6;
+        background: rgba(124, 245, 155, 0.16);
+      }
+
+      .score {
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      .prompt-text {
+        position: relative;
+        margin: 0;
+        padding: 22px;
+        border-radius: 22px;
+        background: rgba(0, 0, 0, 0.24);
+        color: #f7f9ff;
+        font-size: 1.2rem;
+        line-height: 1.7;
+      }
+
+      .good .prompt-text {
+        font-size: 1rem;
+      }
+
+      .prompt-text ul {
+        margin: 12px 0 0;
+        padding-left: 20px;
+      }
+
+      .prompt-text li + li {
+        margin-top: 8px;
+      }
+
+      .why-list {
+        position: relative;
+        display: grid;
+        gap: 12px;
+        margin: 20px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .why-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .icon {
+        display: inline-grid;
+        flex: 0 0 24px;
+        width: 24px;
+        height: 24px;
+        place-items: center;
+        border-radius: 50%;
+        color: #06101b;
+        font-size: 0.8rem;
+        font-weight: 900;
+      }
+
+      .bad .icon { background: var(--red); }
+      .good .icon { background: var(--green); }
+
+      .lesson-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+      }
+
+      .lesson-card {
+        position: relative;
+        padding: 22px;
+        border-radius: 26px;
+        overflow: hidden;
+        transition: transform 0.24s ease, border-color 0.24s ease;
+      }
+
+      .lesson-card:hover {
+        transform: translateY(-8px);
+        border-color: rgba(54, 227, 255, 0.45);
+      }
+
+      .lesson-number {
+        display: inline-grid;
+        width: 42px;
+        height: 42px;
+        place-items: center;
+        border-radius: 14px;
+        color: #06101b;
+        background: linear-gradient(135deg, var(--cyan), var(--green));
+        font-weight: 950;
+      }
+
+      .lesson-card h3 {
+        margin: 18px 0 10px;
+        font-size: 1.2rem;
+      }
+
+      .lesson-card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .template-card {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        align-items: center;
+        padding: clamp(24px, 4vw, 44px);
+        border-radius: 34px;
+      }
+
+      .template-card p {
+        color: var(--muted);
+        line-height: 1.75;
+      }
+
+      .formula {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .formula li {
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.085);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #eaf1ff;
+      }
+
+      .formula strong {
+        color: var(--cyan);
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        animation: riseIn 0.8s ease forwards;
+      }
+
+      @keyframes riseIn {
+        to {
+          opacity: 1;
+          transform: translateY(0) rotate(0deg);
+        }
+      }
+
+      @media (max-width: 900px) {
+        .hero,
+        .comparison-grid,
+        .template-card {
+          grid-template-columns: 1fr;
+        }
+
+        .lesson-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 560px) {
+        .page {
+          width: min(100% - 20px, 1180px);
+          padding-top: 24px;
+        }
+
+        .section-heading {
+          display: block;
+        }
+
+        .section-heading p {
+          margin-top: 12px;
+        }
+
+        .lesson-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .prompt-card,
+        .video-card,
+        .template-card {
+          border-radius: 24px;
+          padding: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+
+    <main class="page">
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow"><span class="spark"></span> YouTube lesson visual: prompt engineering</p>
+          <h1 id="page-title">
+            Bad Prompt
+            <span class="gradient-text">vs Good Prompt</span>
+          </h1>
+          <p class="hero-copy">
+            Show your audience how a vague one-line request becomes a professional, production-ready prompt when it includes role, context, constraints, features, and output expectations.
+          </p>
+          <div class="cta-row">
+            <a class="button" href="#comparison">Compare prompts</a>
+            <a class="button secondary" href="#formula">Prompt formula</a>
+          </div>
+        </div>
+
+        <aside class="video-card" aria-label="Animated video preview card">
+          <div class="player-top">
+            <div class="traffic" aria-hidden="true"><span></span><span></span><span></span></div>
+            <span class="recording">Recording</span>
+          </div>
+          <div class="play-zone">
+            <div class="play-button" aria-hidden="true"></div>
+          </div>
+          <div class="timeline" aria-hidden="true"><span></span></div>
+        </aside>
+      </section>
+
+      <section id="comparison" aria-labelledby="comparison-title">
+        <div class="section-heading reveal">
+          <h2 id="comparison-title">Make the difference obvious</h2>
+          <p>Use the side-by-side cards as a pause point in your video: first show what is missing, then reveal what a useful AI instruction contains.</p>
+        </div>
+
+        <div class="comparison-grid">
+          <article class="prompt-card bad reveal">
+            <div class="card-label">
+              <span class="badge">✕ Bad prompt</span>
+              <span class="score">Low clarity</span>
+            </div>
+            <blockquote class="prompt-text">Create login page in Angular.</blockquote>
+            <ul class="why-list">
+              <li><span class="icon">!</span><span>No Angular version, architecture, or form approach is specified.</span></li>
+              <li><span class="icon">!</span><span>Validation, loading, and error behavior are missing.</span></li>
+              <li><span class="icon">!</span><span>The expected style, libraries, and explanation format are unclear.</span></li>
+            </ul>
+          </article>
+
+          <article class="prompt-card good reveal">
+            <div class="card-label">
+              <span class="badge">✓ Good prompt</span>
+              <span class="score">High clarity</span>
+            </div>
+            <div class="prompt-text">
+              <strong>Act as a senior Angular developer.</strong><br />
+              I am building an Angular 17 application using standalone components and reactive forms. Create a login page with:
+              <ul>
+                <li>Email and password fields</li>
+                <li>Required validation</li>
+                <li>Email format validation</li>
+                <li>Password minimum 6 characters</li>
+                <li>Submit button disabled while the form is invalid</li>
+                <li>Loading state while API call is running</li>
+                <li>Error message if login fails</li>
+              </ul>
+              Use clean HTML, TypeScript, and CSS. Do not use Angular Material. Explain the code after giving it.
+            </div>
+            <ul class="why-list">
+              <li><span class="icon">✓</span><span>Defines the expert role and application context.</span></li>
+              <li><span class="icon">✓</span><span>Lists exact features, validation rules, and UI states.</span></li>
+              <li><span class="icon">✓</span><span>Sets technology constraints and asks for an explanation.</span></li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="lessons-title">
+        <div class="section-heading reveal">
+          <h2 id="lessons-title">Why the good prompt works</h2>
+          <p>Teach viewers to add the ingredients that reduce guessing and help AI generate useful code on the first attempt.</p>
+        </div>
+
+        <div class="lesson-grid">
+          <article class="lesson-card reveal">
+            <span class="lesson-number">1</span>
+            <h3>Role</h3>
+            <p>Tell AI who to act as so the answer matches the expected skill level and decision style.</p>
+          </article>
+          <article class="lesson-card reveal">
+            <span class="lesson-number">2</span>
+            <h3>Context</h3>
+            <p>Include framework version, architecture, and project setup to avoid outdated or mismatched code.</p>
+          </article>
+          <article class="lesson-card reveal">
+            <span class="lesson-number">3</span>
+            <h3>Requirements</h3>
+            <p>List fields, validations, API behavior, loading states, and error states as concrete acceptance criteria.</p>
+          </article>
+          <article class="lesson-card reveal">
+            <span class="lesson-number">4</span>
+            <h3>Constraints</h3>
+            <p>State what to use, what to avoid, and whether you need only code, explanation, or both.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="formula" aria-labelledby="formula-title">
+        <div class="template-card reveal">
+          <div>
+            <h2 id="formula-title">Reusable prompt formula</h2>
+            <p>
+              End your video with this simple structure so viewers can turn any vague request into an actionable engineering prompt.
+            </p>
+          </div>
+          <ul class="formula">
+            <li><strong>Act as:</strong> define the expert role.</li>
+            <li><strong>Context:</strong> describe the project, version, and setup.</li>
+            <li><strong>Task:</strong> say exactly what to build.</li>
+            <li><strong>Requirements:</strong> list features and edge cases.</li>
+            <li><strong>Constraints:</strong> mention libraries, style, and output format.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
